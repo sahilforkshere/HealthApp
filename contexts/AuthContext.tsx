@@ -16,6 +16,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userType: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  updateProfile:()=>{}
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -72,59 +73,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, userType: string, fullName: string) => {
-    try {
-      console.log('Starting signup for:', email); // Debug log
-      
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            user_type: userType,
-          }
-        }
-      });
-      
-      if (error) throw error;
-      
-      if (data.user) {
-        console.log('User created, checking for existing profile...'); // Debug log
-        
-        // Check if profile already exists before creating
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-
-        if (!existingProfile && checkError?.code === 'PGRST116') {
-          // Profile doesn't exist, create it
-          console.log('Creating new profile...'); // Debug log
-          const { error: profileError } = await supabase.from('profiles').insert({
-            id: data.user.id,
-            user_type: userType,
-            full_name: fullName,
-          });
-          
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-            throw profileError;
-          }
-          console.log('Profile created successfully'); // Debug log
-        } else if (existingProfile) {
-          console.log('Profile already exists for user'); // Debug log
-        } else if (checkError) {
-          console.error('Error checking existing profile:', checkError);
-          throw checkError;
+ const signUp = async (email: string, password: string, userType: string, fullName: string) => {
+  try {
+    setLoading(true);
+   
+    
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          user_type: userType,
         }
       }
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
+    });
+    
+    if (error) throw error;
+    
+    if (data.user) {
+      // Create profile
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        user_type: userType,
+        full_name: fullName,
+        email: email,
+      });
+      
+      if (profileError) throw profileError;
+
+      // Create role-specific record
+      if (userType === 'patient') {
+        const { error: patientError } = await supabase.from('patients').insert({
+          user_id: data.user.id,
+          // Add default values if needed
+        });
+        if (patientError) throw patientError;
+      }
+      
+      if (userType === 'doctor') {
+        const { error: doctorError } = await supabase.from('doctors').insert({
+          user_id: data.user.id,
+          specialty: '',
+          license_number: '',
+          hospital_name: '',
+          hospital_address: '',
+          available_status: false,
+        });
+        if (doctorError) throw doctorError;
+      }
     }
-  };
+  } catch (err: any) {
+    setError(err.message || 'Registration failed');
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
+;
 
   const signIn = async (email: string, password: string) => {
     console.log('Attempting sign in for:', email); // Debug log
@@ -151,9 +157,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw error;
     }
   };
+  const updateProfile = async (updates: Partial<Profile>) => {
+  if (!user) throw new Error('Not authenticated');
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', user.id);
+  if (error) throw error;
+  fetchUserProfile(user.id);
+};
+
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, signIn, signUp, signOut, loading }}>
+    <AuthContext.Provider value={{ user, userProfile, signIn, signUp, signOut, loading,updateProfile  }}>
       {children}
     </AuthContext.Provider>
   );

@@ -27,16 +27,19 @@ export default function DoctorDashboard() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.welcome}>Dr. {userProfile?.full_name}</Text>
+      <Text style={styles.welcome}>Welcome, Dr. {userProfile?.full_name}!</Text>
       <Text style={styles.subtitle}>Doctor Dashboard</Text>
       
-      {/* Dashboard content */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Pending Patient Requests</Text>
-        {/* Add your dashboard content here */}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.infoText}>
+          📋 Complete your profile in the Profile tab to appear in patient searches
+        </Text>
+        <Text style={styles.infoText}>
+          👥 Patient requests will appear here once you're set up
+        </Text>
       </View>
       
-      {/* Sign Out Button */}
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
@@ -70,6 +73,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 15,
     color: '#333',
+  },
+  infoText: {
+    color: '#666',
+    fontSize: 16,
+    marginBottom: 10,
+    lineHeight: 24,
   },
   signOutButton: {
     backgroundColor: '#dc3545',
