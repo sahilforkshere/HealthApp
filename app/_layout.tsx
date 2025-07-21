@@ -1,29 +1,63 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useRouter, useSegments } from 'expo-router';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+function RootLayoutNav() {
+  const { user, userProfile, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  useEffect(() => {
+    if (loading) return; // Wait for auth to load
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+    const inAuthGroup = segments[0] === '(auth)';
+    const inPatientTabs = segments[0] === '(patient-tabs)';
+    const inDoctorTabs = segments[0] === '(doctor-tabs)';
+    const inDriverTabs = segments[0] === '(driver-tabs)';
+
+    console.log('Auth State:', { user: !!user, userProfile, segments }); // Debug log
+
+    if (!user && !inAuthGroup) {
+      // Not logged in - redirect to auth
+      console.log('Redirecting to login - no user');
+      router.replace('/(auth)/login');
+    } else if (user && userProfile) {
+      // User is logged in and profile loaded - redirect based on role
+      console.log('User logged in, redirecting based on role:', userProfile.user_type);
+      
+      if (userProfile.user_type === 'patient' && !inPatientTabs) {
+        router.replace('/(patient-tabs)/dashboard');
+      } else if (userProfile.user_type === 'doctor' && !inDoctorTabs) {
+        router.replace('/(doctor-tabs)/dashboard');
+      } else if (userProfile.user_type === 'driver' && !inDriverTabs) {
+        router.replace('/(driver-tabs)/dashboard');
+      }
+    } else if (user && !userProfile && !inAuthGroup) {
+      // User exists but profile not loaded - stay in auth or show loading
+      console.log('User exists but profile not loaded');
+    }
+  }, [user, userProfile, loading, segments]);
+
+  if (loading) {
+    // Show loading screen while checking auth
+    return null; // or a loading component
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(patient-tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(doctor-tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(driver-tabs)" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
