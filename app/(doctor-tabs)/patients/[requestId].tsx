@@ -3,6 +3,8 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert,
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useDoctor } from '../../../contexts/DoctorContext';
 import RemoteImage from '../../../components/common/RemoteImage';
+import { getPatientProfileByPatientId, PatientProfile } from '../../../services/patient-profile.service';
+import { createCalendarEvent } from '../../../services/calendar.service';
 
 export default function PatientRequestDetail() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
@@ -11,6 +13,8 @@ export default function PatientRequestDetail() {
   const [appointmentTime, setAppointmentTime] = useState('');
   const [appointmentLocation, setAppointmentLocation] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const router = useRouter();
 
   // Debug logging
@@ -39,8 +43,24 @@ export default function PatientRequestDetail() {
       setReply(request.doctor_reply || '');
       setAppointmentTime(request.appointment_time || '');
       setAppointmentLocation(request.appointment_location || '');
+      loadPatientProfile();
     }
   }, [request]);
+
+  const loadPatientProfile = async () => {
+    if (!request) return;
+    
+    try {
+      setProfileLoading(true);
+      const profile = await getPatientProfileByPatientId(request.patient_id);
+      setPatientProfile(profile);
+      console.log('✅ Patient profile loaded:', profile ? 'Found' : 'Not found');
+    } catch (error) {
+      console.error('❌ Error loading patient profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   // Show detailed error info if request not found
   if (!request) {
@@ -73,16 +93,10 @@ export default function PatientRequestDetail() {
   }
 
   const handleStatusUpdate = async (newStatus: string) => {
-  console.log('🔄 Starting status update...');
-  console.log('Request ID:', request.id, typeof request.id);
-  console.log('Current status:', request.status);
-  console.log('New status:', newStatus);
-  console.log('Reply:', reply);
-  console.log('Appointment time:', appointmentTime);
-  console.log('Appointment location:', appointmentLocation);
-  
   try {
     setUpdating(true);
+    
+    // Update the request status first
     await updateRequest(
       String(request.id),
       newStatus,
@@ -90,7 +104,37 @@ export default function PatientRequestDetail() {
       appointmentTime || undefined,
       appointmentLocation || undefined
     );
-    console.log('✅ Status update successful');
+
+    // Try to create calendar event (non-blocking)
+    if (newStatus === 'scheduled' && appointmentTime && appointmentLocation) {
+      try {
+        const appointmentDate = new Date(appointmentTime);
+        if (isNaN(appointmentDate.getTime())) {
+          throw new Error('Invalid appointment time format');
+        }
+        
+        const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000); // 1 hour
+
+        await createCalendarEvent({
+          patient_request_id: request.id,
+          doctor_id: request.doctor_id,
+          patient_id: request.patient_id,
+          title: `Consultation with ${request.patients?.profiles?.full_name}`,
+          description: request.problem_description,
+          start_datetime: appointmentDate.toISOString(),
+          end_datetime: endDate.toISOString(),
+          location: appointmentLocation,
+          event_type: 'consultation',
+          status: 'scheduled'
+        });
+        
+        console.log('✅ Calendar event created successfully');
+      } catch (calendarError) {
+        console.warn('⚠️ Calendar event creation failed (non-critical):', calendarError);
+        // Don't show error to user as main operation succeeded
+      }
+    }
+    
     Alert.alert('Success', `Request ${newStatus} successfully!`);
   } catch (error) {
     console.error('❌ Status update failed:', error);
@@ -116,11 +160,32 @@ export default function PatientRequestDetail() {
     }
   };
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 'Not specified';
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return `${age} years`;
+  };
+
+  const calculateBMI = (height?: number, weight?: number) => {
+    if (!height || !weight) return 'Not available';
+    const heightInMeters = height / 100;
+    const bmi = weight / (heightInMeters * heightInMeters);
+    return bmi.toFixed(1);
+  };
+
   // Handle nested profile structure
-  const patientProfile = request.patients?.profiles;
-  const patientName = patientProfile?.full_name || 'Unknown Patient';
-  const patientPhone = patientProfile?.phone || 'No phone provided';
-  const avatarUrl = patientProfile?.avatar_url;
+  const patientProfile_basic = request.patients?.profiles;
+  const patientName = patientProfile_basic?.full_name || 'Unknown Patient';
+  const patientPhone = patientProfile_basic?.phone || 'No phone provided';
+  const avatarUrl = patientProfile_basic?.avatar_url;
 
   console.log('✅ Found request:', {
     id: request.id,
@@ -131,7 +196,7 @@ export default function PatientRequestDetail() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Patient Info */}
+      {/* Patient Basic Info */}
       <View style={styles.patientCard}>
         <View style={styles.patientHeader}>
           {avatarUrl ? (
@@ -156,6 +221,111 @@ export default function PatientRequestDetail() {
           </View>
         </View>
       </View>
+
+      {/* Patient Medical Profile */}
+      {profileLoading ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Patient Medical Information</Text>
+          <Text style={styles.loadingText}>Loading patient profile...</Text>
+        </View>
+      ) : patientProfile ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Patient Medical Information</Text>
+          
+          {/* Basic Medical Info Grid */}
+          <View style={styles.profileGrid}>
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>🩸 Blood Group:</Text>
+              <Text style={styles.profileValue}>{patientProfile.blood_group || 'Not specified'}</Text>
+            </View>
+            
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>👤 Gender:</Text>
+              <Text style={styles.profileValue}>{patientProfile.gender || 'Not specified'}</Text>
+            </View>
+            
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>🎂 Age:</Text>
+              <Text style={styles.profileValue}>{calculateAge(patientProfile.date_of_birth || '')}</Text>
+            </View>
+            
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>📏 Height:</Text>
+              <Text style={styles.profileValue}>{patientProfile.height ? `${patientProfile.height} cm` : 'Not specified'}</Text>
+            </View>
+            
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>⚖️ Weight:</Text>
+              <Text style={styles.profileValue}>{patientProfile.weight ? `${patientProfile.weight} kg` : 'Not specified'}</Text>
+            </View>
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileLabel}>📊 BMI:</Text>
+              <Text style={styles.profileValue}>{calculateBMI(patientProfile.height, patientProfile.weight)}</Text>
+            </View>
+          </View>
+          
+          {/* Emergency Contact */}
+          {patientProfile.emergency_contact_name && (
+            <View style={styles.emergencyContact}>
+              <Text style={styles.emergencyTitle}>🚨 Emergency Contact</Text>
+              <Text style={styles.emergencyText}>
+                <Text style={styles.emergencyName}>{patientProfile.emergency_contact_name}</Text>
+                {patientProfile.emergency_contact_relation && (
+                  <Text style={styles.emergencyRelation}> ({patientProfile.emergency_contact_relation})</Text>
+                )}
+              </Text>
+              {patientProfile.emergency_contact_phone && (
+                <Text style={styles.emergencyPhone}>📞 {patientProfile.emergency_contact_phone}</Text>
+              )}
+            </View>
+          )}
+          
+          {/* Medical History */}
+          {patientProfile.medical_history && (
+            <View style={styles.medicalSection}>
+              <Text style={styles.medicalTitle}>📋 Medical History</Text>
+              <Text style={styles.medicalText}>{patientProfile.medical_history}</Text>
+            </View>
+          )}
+          
+          {/* Allergies */}
+          {patientProfile.allergies && (
+            <View style={styles.medicalSection}>
+              <Text style={styles.medicalTitle}>⚠️ Allergies</Text>
+              <Text style={[styles.medicalText, styles.allergyText]}>{patientProfile.allergies}</Text>
+            </View>
+          )}
+          
+          {/* Current Medications */}
+          {patientProfile.current_medications && (
+            <View style={styles.medicalSection}>
+              <Text style={styles.medicalTitle}>💊 Current Medications</Text>
+              <Text style={styles.medicalText}>{patientProfile.current_medications}</Text>
+            </View>
+          )}
+
+          {/* Insurance Information */}
+          {(patientProfile.insurance_provider || patientProfile.insurance_policy_number) && (
+            <View style={styles.medicalSection}>
+              <Text style={styles.medicalTitle}>🏥 Insurance Information</Text>
+              {patientProfile.insurance_provider && (
+                <Text style={styles.medicalText}>Provider: {patientProfile.insurance_provider}</Text>
+              )}
+              {patientProfile.insurance_policy_number && (
+                <Text style={styles.medicalText}>Policy: {patientProfile.insurance_policy_number}</Text>
+              )}
+            </View>
+          )}
+        </View>
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Patient Medical Information</Text>
+          <Text style={styles.noProfileText}>
+            Patient has not completed their medical profile yet.
+          </Text>
+        </View>
+      )}
 
       {/* Problem Description */}
       <View style={styles.card}>
@@ -204,21 +374,28 @@ export default function PatientRequestDetail() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Appointment Details</Text>
           
-          <Text style={styles.inputLabel}>Appointment Time</Text>
+          <Text style={styles.inputLabel}>📅 Appointment Date & Time</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g., Tomorrow 3:00 PM or Dec 25, 2024 10:00 AM"
+            placeholder="e.g., 2024-12-25 15:30 or Tomorrow 3:00 PM"
             value={appointmentTime}
             onChangeText={setAppointmentTime}
           />
 
-          <Text style={styles.inputLabel}>Location</Text>
+          <Text style={styles.inputLabel}>📍 Location</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g., Room 101, City Hospital or Online consultation"
             value={appointmentLocation}
             onChangeText={setAppointmentLocation}
           />
+
+          <View style={styles.appointmentHelper}>
+            <Text style={styles.helperTitle}>💡 Quick Tips:</Text>
+            <Text style={styles.helperText}>• Use clear date format: YYYY-MM-DD HH:MM</Text>
+            <Text style={styles.helperText}>• Include room number for in-person visits</Text>
+            <Text style={styles.helperText}>• Specify "Online" for telemedicine</Text>
+          </View>
         </View>
       )}
 
@@ -244,7 +421,7 @@ export default function PatientRequestDetail() {
                 onPress={() => handleStatusUpdate('cancelled')}
                 disabled={updating}
               >
-                <Text style={styles.buttonText}>✕ Decline</Text>
+                <Text style={styles.buttonText}>✕ Decline Request</Text>
               </TouchableOpacity>
             </>
           )}
@@ -252,7 +429,13 @@ export default function PatientRequestDetail() {
           {request.status === 'accepted' && (
             <TouchableOpacity
               style={[styles.actionButton, styles.scheduleButton]}
-              onPress={() => handleStatusUpdate('scheduled')}
+              onPress={() => {
+                if (!appointmentTime || !appointmentLocation) {
+                  Alert.alert('Missing Information', 'Please set appointment time and location before scheduling.');
+                  return;
+                }
+                handleStatusUpdate('scheduled');
+              }}
               disabled={updating}
             >
               <Text style={styles.buttonText}>📅 Schedule Appointment</Text>
@@ -274,7 +457,7 @@ export default function PatientRequestDetail() {
             onPress={() => handleStatusUpdate(request.status)}
             disabled={updating}
           >
-            <Text style={styles.buttonText}>💾 Update Reply</Text>
+            <Text style={styles.buttonText}>💾 Update Reply & Details</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -282,15 +465,10 @@ export default function PatientRequestDetail() {
       {/* Debug info - remove in production */}
       <View style={styles.debugCard}>
         <Text style={styles.debugTitle}>Debug Info</Text>
-        <Text style={styles.debugText}>
-          Request ID: {request.id} (type: {typeof request.id})
-        </Text>
-        <Text style={styles.debugText}>
-          Medical docs count: {request.medical_documents?.length || 0}
-        </Text>
-        <Text style={styles.debugText}>
-          Status: {request.status}
-        </Text>
+        <Text style={styles.debugText}>Request ID: {request.id} (type: {typeof request.id})</Text>
+        <Text style={styles.debugText}>Medical docs count: {request.medical_documents?.length || 0}</Text>
+        <Text style={styles.debugText}>Status: {request.status}</Text>
+        <Text style={styles.debugText}>Patient profile loaded: {patientProfile ? 'Yes' : 'No'}</Text>
       </View>
     </ScrollView>
   );
@@ -308,8 +486,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   loadingText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#666',
+    textAlign: 'center',
+    padding: 20,
   },
   errorTitle: {
     fontSize: 20,
@@ -439,6 +619,88 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 24,
   },
+  profileGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 16,
+  },
+  profileItem: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    flex: 1,
+    minWidth: '45%',
+  },
+  profileLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 4,
+  },
+  profileValue: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '600',
+  },
+  emergencyContact: {
+    backgroundColor: '#fff3cd',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffc107',
+    marginBottom: 16,
+  },
+  emergencyTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#856404',
+    marginBottom: 8,
+  },
+  emergencyText: {
+    fontSize: 14,
+    color: '#856404',
+    marginBottom: 4,
+  },
+  emergencyName: {
+    fontWeight: 'bold',
+  },
+  emergencyRelation: {
+    fontStyle: 'italic',
+  },
+  emergencyPhone: {
+    fontSize: 14,
+    color: '#856404',
+    fontWeight: '600',
+  },
+  medicalSection: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  medicalTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#495057',
+    marginBottom: 8,
+  },
+  medicalText: {
+    fontSize: 14,
+    color: '#495057',
+    lineHeight: 20,
+  },
+  allergyText: {
+    color: '#dc3545',
+    fontWeight: '600',
+  },
+  noProfileText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    padding: 20,
+  },
   documentsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -454,7 +716,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   documentIndex: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
     marginTop: 4,
   },
@@ -482,6 +744,23 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#fafafa',
+  },
+  appointmentHelper: {
+    backgroundColor: '#e3f2fd',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  helperTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 8,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#1976d2',
+    marginBottom: 4,
   },
   actionsCard: {
     backgroundColor: '#fff',

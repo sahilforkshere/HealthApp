@@ -4,18 +4,23 @@ import { decode } from 'base64-arraybuffer';
 
 // Make sure this function is exported
 export async function getPatientIdByUserId(userId: string): Promise<string> {
+  console.log('🔍 Looking for patient with user_id:', userId);
+  
   const { data, error } = await supabase
     .from('patients')
     .select('id')
     .eq('user_id', userId)
     .single();
-  
-  if (error) {
-    console.error('Error finding patient:', error);
-    throw new Error('Patient record not found. Please contact support.');
+
+  if (error || !data) {
+    console.error('❌ Patient lookup failed:', error);
+    throw new Error('Patient record not found');
   }
-  return data.id;
+  
+  console.log('✅ Found patient ID:', data.id);
+  return String(data.id); // Ensure it's returned as string (UUID)
 }
+
 
 export async function fetchDoctors() {
   const { data, error } = await supabase

@@ -24,11 +24,29 @@ export default function DoctorTabLayout() {
           }}
         />
         <Tabs.Screen
+          name="calendar"
+          options={{
+            title: 'Calendar',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={24} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="patients"
           options={{
             title: 'Patients',
             tabBarIcon: ({ color, focused }) => (
               <Ionicons name={focused ? 'people' : 'people-outline'} color={color} size={24} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="availability"
+          options={{
+            title: 'Schedule',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'time' : 'time-outline'} color={color} size={24} />
             ),
           }}
         />
