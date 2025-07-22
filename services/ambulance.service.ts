@@ -470,3 +470,104 @@ export async function updateDriverLocationWithCoordinates(
     throw error;
   }
 }
+export async function updateRequestStatus(
+  requestId: string, 
+  status: 'completed' | 'cancelled' | 'en-route' | 'arrived',
+  reason?: string
+): Promise<void> {
+  try {
+    console.log(`🔄 Updating request ${requestId} to status: ${status}`);
+    
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
+    };
+
+    // Add cancellation reason if provided
+    if (reason && status === 'cancelled') {
+      updateData.cancellation_reason = reason;
+    }
+
+    // Add completion time if completing
+    if (status === 'completed') {
+      updateData.completed_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase
+      .from('ambulance_requests')
+      .update(updateData)
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('❌ Error updating request status:', error);
+      throw error;
+    }
+
+    console.log('✅ Request status updated successfully');
+  } catch (error) {
+    console.error('❌ Error in updateRequestStatus:', error);
+    throw error;
+  }
+}
+
+// Get patient's request history with status tracking
+export async function getPatientRequestHistory(patientId: string): Promise<AmbulanceRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ambulance_requests')
+      .select(`
+        *,
+        ambulance_drivers (
+          id,
+          vehicle_registration,
+          vehicle_type,
+          profiles!inner (full_name, phone, avatar_url)
+        )
+      `)
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Error fetching patient history:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('❌ Error in getPatientRequestHistory:', error);
+    return [];
+  }
+}
+
+// Check if patient has active request
+// export async function getPatientActiveRequest(patientId: string): Promise<AmbulanceRequest | null> {
+//   try {
+//     const { data, error } = await supabase
+//       .from('ambulance_requests')
+//       .select(`
+//         *,
+//         ambulance_drivers (
+//           id,
+//           vehicle_registration,
+//           vehicle_type,
+//           current_location,
+//           profiles!inner (full_name, phone, avatar_url)
+//         )
+//       `)
+//       .eq('patient_id', patientId)
+//       .in('status', ['pending', 'accepted', 'en-route', 'arrived'])
+//       .order('created_at', { ascending: false })
+//       .limit(1)
+//       .single();
+
+//     if (error && error.code !== 'PGRST116') {
+//       console.error('❌ Error fetching active request:', error);
+//       throw error;
+//     }
+
+//     return data;
+//   } catch (error) {
+//     console.error('❌ Error in getPatientActiveRequest:', error);
+//     return null;
+//   }
+// }

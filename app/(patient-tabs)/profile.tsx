@@ -3,8 +3,8 @@ import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Alert 
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPatientProfile, updatePatientProfile, PatientProfile } from '../../services/patient-profile.service';
+import DeleteAccountButton from '../../components/DeleteAccountButton';
 
-// Rename the component to avoid conflict with the imported type
 export default function PatientProfileScreen() {
   const { userProfile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -251,6 +251,15 @@ export default function PatientProfileScreen() {
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
+
+        {/* Danger Zone */}
+        <View style={styles.dangerZone}>
+          <Text style={styles.dangerZoneTitle}>⚠️ Danger Zone</Text>
+          <Text style={styles.dangerZoneText}>
+            Once you delete your account, there is no going back. Please be certain.
+          </Text>
+          <DeleteAccountButton />
+        </View>
       </View>
     </ScrollView>
   );
@@ -365,5 +374,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  dangerZone: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#f44336',
+    marginTop: 20,
+  },
+  dangerZoneTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f44336',
+    marginBottom: 8,
+  },
+  dangerZoneText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 16,
   },
 });

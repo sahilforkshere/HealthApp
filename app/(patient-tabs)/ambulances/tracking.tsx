@@ -228,12 +228,62 @@ export default function AmbulanceTracking() {
     await getPatientLocation();
   };
 
-  const callNumber = (num: string, label: string) => {
-    if (!num) {
-      Alert.alert('Unavailable', `${label} phone number is not available.`);
+  const callDriverNumber = () => {
+    const driverPhone = activeRequest?.ambulance_drivers?.profiles?.phone;
+    const driverName = activeRequest?.ambulance_drivers?.profiles?.full_name;
+    
+    console.log('📞 Driver phone data:', {
+      phone: driverPhone,
+      name: driverName,
+      hasDriver: !!activeRequest?.ambulance_drivers,
+      hasProfile: !!activeRequest?.ambulance_drivers?.profiles
+    });
+
+    if (!driverPhone) {
+      Alert.alert(
+        'Driver Contact Unavailable', 
+        'The driver\'s phone number is not available at this time. You can still call emergency services.',
+        [
+          { text: 'OK', style: 'cancel' },
+          { 
+            text: 'Call Emergency (112)', 
+            onPress: () => Linking.openURL('tel:112')
+          }
+        ]
+      );
       return;
     }
-    Linking.openURL(`tel:${num}`);
+
+    // Clean and validate phone number
+    const cleanPhone = driverPhone.replace(/[^\d+]/g, '');
+    
+    if (cleanPhone.length < 10) {
+      Alert.alert('Invalid Number', 'The driver\'s phone number appears to be invalid');
+      return;
+    }
+
+    Alert.alert(
+      '📞 Call Your Ambulance Driver',
+      `Do you want to call ${driverName || 'your driver'}?\n\nPhone: ${driverPhone}\nVehicle: ${activeRequest?.ambulance_drivers?.vehicle_registration || 'Unknown'}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Call Driver', 
+          onPress: () => Linking.openURL(`tel:${cleanPhone}`)
+        }
+      ]
+    );
+  };
+
+  const callEmergencyNumber = () => {
+    Alert.alert(
+      'Emergency Call',
+      'Call emergency services?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call 112', onPress: () => Linking.openURL('tel:112') }
+      ]
+    );
   };
 
   const centerMapOnLocations = () => {
@@ -359,6 +409,12 @@ export default function AmbulanceTracking() {
               <Text style={styles.driverInfo} numberOfLines={1}>
                 {activeRequest.ambulance_drivers?.vehicle_type} • {activeRequest.ambulance_drivers?.vehicle_registration}
               </Text>
+              {/* Show driver phone number */}
+              {activeRequest.ambulance_drivers?.profiles?.phone && (
+                <Text style={styles.driverPhone} numberOfLines={1}>
+                  📞 {activeRequest.ambulance_drivers.profiles.phone}
+                </Text>
+              )}
               {activeRequest.driver_location && (
                 <Text style={styles.driverLocation} numberOfLines={1}>
                   📍 {activeRequest.driver_location}
@@ -384,20 +440,28 @@ export default function AmbulanceTracking() {
 
           {/* Action buttons */}
           <View style={styles.actionRow}>
-            {activeRequest.ambulance_drivers?.profiles?.phone && (
-              <TouchableOpacity
-                style={styles.callBtn}
-                onPress={() => callNumber(activeRequest.ambulance_drivers!.profiles!.phone!, 'Driver')}
-              >
-                <Text style={styles.callText}>📞 Call Driver</Text>
-              </TouchableOpacity>
-            )}
+            {/* Driver call button - prominently displayed */}
+            <TouchableOpacity
+              style={[
+                styles.callBtn, 
+                !activeRequest.ambulance_drivers?.profiles?.phone && styles.disabledBtn
+              ]}
+              onPress={callDriverNumber}
+            >
+              <Text style={styles.callText}>
+                {activeRequest.ambulance_drivers?.profiles?.phone 
+                  ? '📞 Call Your Driver' 
+                  : '📞 Driver Contact N/A'
+                }
+              </Text>
+            </TouchableOpacity>
             
+            {/* Emergency call button */}
             <TouchableOpacity
               style={styles.emergBtn}
-              onPress={() => callNumber('112', 'Emergency')}
+              onPress={callEmergencyNumber}
             >
-              <Text style={styles.emergText}>🆘 Emergency</Text>
+              <Text style={styles.emergText}>🆘 Emergency (112)</Text>
             </TouchableOpacity>
           </View>
 
@@ -620,6 +684,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+  driverPhone: {
+    fontSize: 14,
+    color: '#2196f3',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
   driverLocation: {
     fontSize: 12,
     color: '#ff9800',
@@ -661,6 +731,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
+  },
+  disabledBtn: {
+    backgroundColor: '#cccccc',
+    elevation: 0,
   },
   callText: {
     color: '#fff',
@@ -673,6 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
   },
   emergText: {
     color: '#fff',

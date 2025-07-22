@@ -17,13 +17,13 @@ import {
   getDriverProfile, 
   updateDriverProfile 
 } from '../../services/driver-profile.service';
+import DeleteAccountButton from '../../components/DeleteAccountButton';
 
 export default function DriverProfileScreen() {
-  const { userProfile, updateProfile, signOut } = useAuth(); // Add signOut here
+  const { userProfile, updateProfile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Driver-specific data
   const [driverData, setDriverData] = useState({
     license_number: '',
     vehicle_registration: '',
@@ -32,7 +32,6 @@ export default function DriverProfileScreen() {
     available_status: false
   });
 
-  // Profile data (name, phone, photo)
   const [profileData, setProfileData] = useState({
     full_name: '',
     phone: '',
@@ -57,7 +56,6 @@ export default function DriverProfileScreen() {
     try {
       setLoading(true);
       
-      // Load driver data
       const driverProfile = await getDriverProfile(userProfile.id);
       if (driverProfile) {
         setDriverData({
@@ -69,7 +67,6 @@ export default function DriverProfileScreen() {
         });
       }
 
-      // Set profile data from userProfile (AuthContext)
       setProfileData({
         full_name: userProfile.full_name || '',
         phone: userProfile.phone || '',
@@ -110,7 +107,6 @@ export default function DriverProfileScreen() {
   const saveCompleteProfile = async () => {
     if (!userProfile) return;
 
-    // Validation
     if (!profileData.full_name?.trim()) {
       Alert.alert('Validation Error', 'Please enter your full name');
       return;
@@ -130,10 +126,7 @@ export default function DriverProfileScreen() {
       setSaving(true);
       console.log('💾 Saving complete profile...');
       
-      // Update profile data through AuthContext
       await updateProfile(profileData);
-      
-      // Update driver-specific data
       await updateDriverProfile(userProfile.id, driverData);
       
       Alert.alert('Success', 'Profile updated successfully! Patients will now see your information when requesting ambulance services.');
@@ -177,13 +170,11 @@ export default function DriverProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>🚑 Driver Profile</Text>
         <Text style={styles.subtitle}>This information will be visible to patients</Text>
       </View>
 
-      {/* Profile Photo Section */}
       <View style={styles.photoSection}>
         <TouchableOpacity style={styles.photoContainer} onPress={updateProfileImage}>
           {profileData.avatar_url ? (
@@ -200,7 +191,6 @@ export default function DriverProfileScreen() {
         <Text style={styles.photoNote}>Patients will see this photo when requesting your ambulance</Text>
       </View>
 
-      {/* Personal Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
         
@@ -239,7 +229,6 @@ export default function DriverProfileScreen() {
         />
       </View>
 
-      {/* Vehicle Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Vehicle Information</Text>
         
@@ -266,7 +255,6 @@ export default function DriverProfileScreen() {
         </View>
       </View>
 
-      {/* Important Notice */}
       <View style={styles.noticeSection}>
         <Text style={styles.noticeTitle}>📱 Important Notice</Text>
         <Text style={styles.noticeText}>
@@ -275,7 +263,6 @@ export default function DriverProfileScreen() {
         </Text>
       </View>
 
-      {/* Action Buttons */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.disabledButton]}
@@ -293,9 +280,17 @@ export default function DriverProfileScreen() {
         >
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
+
+        {/* Danger Zone */}
+        <View style={styles.dangerZone}>
+          <Text style={styles.dangerZoneTitle}>⚠️ Danger Zone</Text>
+          <Text style={styles.dangerZoneText}>
+            Once you delete your account, there is no going back. Please be certain.
+          </Text>
+          <DeleteAccountButton />
+        </View>
       </View>
 
-      {/* Debug Info */}
       <View style={styles.debugContainer}>
         <Text style={styles.debugTitle}>Debug Info</Text>
         <Text style={styles.debugText}>User ID: {userProfile?.id}</Text>
@@ -481,6 +476,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  dangerZone: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#f44336',
+    marginTop: 20,
+  },
+  dangerZoneTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f44336',
+    marginBottom: 8,
+  },
+  dangerZoneText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
   debugContainer: {
     backgroundColor: '#fff',
     margin: 16,
@@ -488,7 +503,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    marginBottom: 40, // Extra margin at bottom
+    marginBottom: 40,
   },
   debugTitle: {
     fontSize: 14,

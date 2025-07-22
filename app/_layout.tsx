@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { useRouter, useSegments } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { DriverProvider } from '../contexts/DriverContext';
 import { AmbulanceProvider } from '../contexts/AmbulanceContext';
-
+import CustomSplashScreen from '@/components/ui/CustomSplashScreen';
 // Loading component
 function LoadingScreen() {
   return (
@@ -71,7 +71,6 @@ function RootLayoutNav() {
     } else if (user && !userProfile && !inAuthGroup) {
       // User exists but profile not loaded - wait for profile or redirect to login
       console.log('⏳ User exists but profile not loaded');
-      // You might want to add a timeout here to prevent infinite loading
     }
   }, [user, userProfile, loading, segments]);
 
@@ -128,6 +127,19 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  const handleSplashFinish = () => {
+    console.log('🎨 Splash screen finished, showing main app');
+    setAppIsReady(true);
+  };
+
+  // Show custom splash screen first
+  if (!appIsReady) {
+    return <CustomSplashScreen onFinish={handleSplashFinish} />;
+  }
+
+  // After splash, show the main app with providers
   return (
     <AuthProvider>
       <DriverProvider>

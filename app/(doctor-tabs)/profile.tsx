@@ -5,9 +5,10 @@ import { supabase } from '../../services/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import DeleteAccountButton from '../../components/DeleteAccountButton';
 
 export default function DoctorProfile() {
-  const { userProfile } = useAuth();
+  const { userProfile, signOut } = useAuth();
   const [doctorDetails, setDoctorDetails] = useState({
     specialty: '',
     license_number: '',
@@ -63,7 +64,7 @@ export default function DoctorProfile() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.5, // Reduced quality for better upload success
+        quality: 0.5,
         allowsEditing: true,
         aspect: [1, 1],
       });
@@ -76,67 +77,59 @@ export default function DoctorProfile() {
     }
   };
 
- const uploadProfileImage = async () => {
-  if (!localImageUri || !userProfile) {
-    Alert.alert('Error', 'No image selected');
-    return;
-  }
-  
-  try {
-    setImageLoading(true);
+  const uploadProfileImage = async () => {
+    if (!localImageUri || !userProfile) {
+      Alert.alert('Error', 'No image selected');
+      return;
+    }
     
-    // Create unique filename
-    const timestamp = Date.now();
-    const fileExt = localImageUri.split('.').pop() || 'jpg';
-    const fileName = `doctor_${userProfile.id}_${timestamp}.${fileExt}`;
-    
-    // Read file as base64
-    const base64 = await FileSystem.readAsStringAsync(localImageUri, {
-      encoding: 'base64',
-    });
-    
-    // Upload using base64 decode method (same as your previous project)
-    const { data, error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, decode(base64), {
-        contentType: `image/${fileExt}`,
-        upsert: true
+    try {
+      setImageLoading(true);
+      
+      const timestamp = Date.now();
+      const fileExt = localImageUri.split('.').pop() || 'jpg';
+      const fileName = `doctor_${userProfile.id}_${timestamp}.${fileExt}`;
+      
+      const base64 = await FileSystem.readAsStringAsync(localImageUri, {
+        encoding: 'base64',
       });
+      
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, decode(base64), {
+          contentType: `image/${fileExt}`,
+          upsert: true
+        });
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userProfile.id);
+
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw updateError;
+      }
+
+      Alert.alert('Success', 'Profile picture uploaded successfully!');
+      setLocalImageUri(null);
+      
+    } catch (error: any) {
+      console.error('Complete upload error:', error);
+      Alert.alert('Upload Failed', error.message || 'Failed to upload image');
+    } finally {
+      setImageLoading(false);
     }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName);
-
-    console.log('Generated public URL:', publicUrl);
-
-    // Update profile with new avatar URL
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('id', userProfile.id);
-
-    if (updateError) {
-      console.error('Profile update error:', updateError);
-      throw updateError;
-    }
-
-    Alert.alert('Success', 'Profile picture uploaded successfully!');
-    setLocalImageUri(null);
-    
-  } catch (error: any) {
-    console.error('Complete upload error:', error);
-    Alert.alert('Upload Failed', error.message || 'Failed to upload image');
-  } finally {
-    setImageLoading(false);
-  }
-};
-
+  };
 
   const saveDoctorDetails = async () => {
     if (!userProfile) {
@@ -144,7 +137,6 @@ export default function DoctorProfile() {
       return;
     }
 
-    // Validation
     if (!doctorDetails.specialty.trim()) {
       Alert.alert('Error', 'Specialty is required');
       return;
@@ -176,7 +168,6 @@ export default function DoctorProfile() {
         available_status: doctorDetails.available_status,
       };
 
-      // Check if record exists first
       const { data: existing, error: checkError } = await supabase
         .from('doctors')
         .select('id')
@@ -184,7 +175,6 @@ export default function DoctorProfile() {
         .single();
 
       if (existing && !checkError) {
-        // Update existing record
         const { error } = await supabase
           .from('doctors')
           .update(doctorData)
@@ -192,7 +182,6 @@ export default function DoctorProfile() {
         
         if (error) throw error;
       } else {
-        // Insert new record
         const { error } = await supabase
           .from('doctors')
           .insert([doctorData]);
@@ -218,6 +207,17 @@ export default function DoctorProfile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: () => signOut() }
+      ]
+    );
   };
 
   return (
@@ -334,6 +334,19 @@ export default function DoctorProfile() {
             {loading ? '💾 Saving...' : '✅ Save Profile'}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+
+        {/* Danger Zone */}
+        <View style={styles.dangerZone}>
+          <Text style={styles.dangerZoneTitle}>⚠️ Danger Zone</Text>
+          <Text style={styles.dangerZoneText}>
+            Once you delete your account, there is no going back. Please be certain.
+          </Text>
+          <DeleteAccountButton />
+        </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
@@ -469,6 +482,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  signOutButton: {
+    backgroundColor: '#f44336',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+    elevation: 2,
+  },
+  signOutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dangerZone: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#f44336',
+    marginTop: 20,
+  },
+  dangerZoneTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f44336',
+    marginBottom: 8,
+  },
+  dangerZoneText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 16,
   },
   footer: {
     marginTop: 20,

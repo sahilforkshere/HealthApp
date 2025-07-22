@@ -1,50 +1,500 @@
-# Welcome to your Expo app 👋
+# EmergencyCare - Real-Time Ambulance Dispatch & Telemedicine Platform
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+  
+  
+  [![React Native](https://imgps://img.shields.io/pt](https://img.shields.io/badge/mg.shields.ionse](https://img.
+    A comprehensive healthcare mobile application enabling real-time ambulance dispatch, patient-doctor consultations, and emergency response coordination.
+  
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
+## 📱 Demo
 
-2. Start the app
+### Video Demo
 
-   ```bash
-   npx expo start
-   ```
+[📺 Watch Demo Video (2 minutes)](https://youtu.be/your-demo-video-link)
 
-In the output, you'll find options to open the app in a
+### Screenshots
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+  
+  
+  
+  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
+*Click on images to view full size*
 
-When you're ready, run:
+## 🚀 Features
 
+### For Patients
+- 🚨 **Emergency Ambulance Requests** - Request ambulance with priority levels
+- 📍 **Live GPS Tracking** - Real-time ambulance location tracking
+- 👨‍⚕️ **Doctor Consultations** - Browse and request consultations with doctors
+- 📊 **Medical Profile** - Manage medical history, allergies, and emergency contacts
+- 📱 **Direct Communication** - Call ambulance drivers and doctors directly
+
+### For Ambulance Drivers
+- 🚑 **Request Management** - Accept/decline emergency requests
+- 🗺️ **Route Navigation** - Integrated GPS navigation to patient locations
+- 📋 **Status Updates** - Update request status (en-route, arrived, completed)
+- 🔄 **Availability Toggle** - Control online/offline status
+- 👤 **Profile Management** - Manage vehicle details and credentials
+
+### For Doctors
+- 📅 **Appointment Scheduling** - Manage patient appointments
+- 🏥 **Hospital Integration** - Link with hospital/clinic information
+- 💼 **Professional Profile** - Showcase specialties and experience
+- 📋 **Patient Requests** - Review and respond to consultation requests
+- 💰 **Fee Management** - Set consultation fees and availability
+
+### Cross-Platform Features
+- 🔐 **Secure Authentication** - Role-based access control
+- 🔄 **Real-time Updates** - Live data synchronization
+- 📸 **Image Upload** - Profile pictures and medical documents
+- 🌍 **Offline Support** - Basic functionality without internet
+- 🔔 **Push Notifications** - Emergency alerts and status updates
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: React Native 0.73+
+- **Development Platform**: Expo 50.x
+- **Language**: TypeScript 5.x
+- **Navigation**: Expo Router (File-based routing)
+- **State Management**: React Context API
+- **UI Components**: React Native Elements, Custom Components
+- **Maps**: React Native Maps with Google Maps
+
+### Backend & Database
+- **Backend-as-a-Service**: Supabase
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth with Row Level Security
+- **File Storage**: Supabase Storage
+- **Real-time**: Supabase Realtime subscriptions
+
+### External Services
+- **Maps & Location**: Google Maps API, Expo Location
+- **Image Handling**: Expo Image Picker, Expo File System
+- **Communication**: React Native Linking (Phone calls)
+- **Push Notifications**: Expo Notifications
+
+### Development Tools
+- **Package Manager**: npm/yarn
+- **Code Quality**: ESLint, Prettier
+- **Version Control**: Git
+- **Environment**: Expo CLI, EAS CLI
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18.x or higher)
+- **npm** or **yarn**
+- **Git**
+- **Expo CLI**: `npm install -g @expo/cli`
+- **EAS CLI**: `npm install -g eas-cli` (for building)
+
+### Platform-Specific Requirements
+
+#### For iOS Development
+- **macOS** (required for iOS builds)
+- **Xcode** 14+ (from Mac App Store)
+- **iOS Simulator** (comes with Xcode)
+
+#### For Android Development
+- **Android Studio** (for Android emulator)
+- **Java Development Kit (JDK)** 11 or higher
+
+## 🚀 Installation & Setup
+
+### 1. Clone the Repository
 ```bash
-npm run reset-project
+git clone https://github.com/sahilforkshere/HealthcareApp-RN.git
+cd HealthcareApp-RN
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install Dependencies
+```bash
+# Using npm
+npm install
 
-## Learn more
+# Using yarn
+yarn install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Environment Configuration
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Create a `.env` file in the root directory:
 
-## Join the community
+```env
+# Supabase Configuration
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-Join our community of developers creating universal apps.
+# Google Maps API Keys
+GOOGLE_MAPS_API_KEY_ANDROID=your_android_maps_key
+GOOGLE_MAPS_API_KEY_IOS=your_ios_maps_key
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_expo_maps_key
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 4. Supabase Setup
+
+#### 4.1. Create Supabase Project
+1. Go to [Supabase Dashboard](https://app.supabase.com/)
+2. Create a new project
+3. Copy your project URL and anon key
+
+#### 4.2. Database Schema
+Run the following SQL in your Supabase SQL Editor:
+
+```sql
+-- Enable Row Level Security
+ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Create profiles table
+CREATE TABLE public.profiles (
+  id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
+  user_type TEXT CHECK (user_type IN ('patient', 'doctor', 'driver')) NOT NULL,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  avatar_url TEXT,
+  email TEXT,
+  emergency_contact_name TEXT,
+  emergency_contact_phone TEXT,
+  emergency_contact_relationship TEXT,
+  date_of_birth DATE,
+  address TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create patients table
+CREATE TABLE public.patients (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  blood_group TEXT,
+  gender TEXT,
+  medical_history TEXT,
+  allergies TEXT,
+  current_medications TEXT,
+  height DECIMAL,
+  weight DECIMAL,
+  insurance_provider TEXT,
+  insurance_policy_number TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create doctors table
+CREATE TABLE public.doctors (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  specialty TEXT NOT NULL,
+  license_number TEXT UNIQUE NOT NULL,
+  hospital_name TEXT NOT NULL,
+  hospital_address TEXT NOT NULL,
+  experience_years INTEGER DEFAULT 0,
+  consultation_fee DECIMAL DEFAULT 0,
+  available_status BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create ambulance_drivers table
+CREATE TABLE public.ambulance_drivers (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  license_number TEXT NOT NULL,
+  vehicle_registration TEXT UNIQUE NOT NULL,
+  vehicle_type TEXT NOT NULL,
+  vehicle_model TEXT,
+  vehicle_year INTEGER,
+  vehicle_color TEXT,
+  available_status BOOLEAN DEFAULT false,
+  current_location TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create ambulance_requests table
+CREATE TABLE public.ambulance_requests (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  patient_id UUID REFERENCES public.patients(id) ON DELETE CASCADE NOT NULL,
+  driver_id UUID REFERENCES public.ambulance_drivers(id) ON DELETE CASCADE,
+  pickup_location TEXT NOT NULL,
+  destination_location TEXT NOT NULL,
+  emergency_level TEXT CHECK (emergency_level IN ('low', 'medium', 'high', 'critical')) NOT NULL,
+  status TEXT CHECK (status IN ('pending', 'accepted', 'en-route', 'arrived', 'completed', 'cancelled')) DEFAULT 'pending',
+  notes TEXT,
+  driver_location TEXT,
+  estimated_arrival_time TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add RLS Policies
+CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Add more policies as needed...
+```
+
+#### 4.3. Storage Buckets
+1. Go to Storage in Supabase Dashboard
+2. Create a bucket named `avatars`
+3. Set it to public access for profile pictures
+
+### 5. Google Maps Setup
+
+#### 5.1. Get API Keys
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable APIs:
+   - Maps SDK for Android
+   - Maps SDK for iOS
+   - Places API
+   - Geocoding API
+4. Create credentials and restrict by platform
+
+#### 5.2. Configure API Keys
+Update your `app.config.js`:
+
+```javascript
+import 'dotenv/config';
+
+export default {
+  expo: {
+    name: "HealthcareApp",
+    slug: "healthcare-app",
+    // ... other config
+    android: {
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID
+        }
+      }
+    },
+    ios: {
+      config: {
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY_IOS
+      }
+    }
+  }
+};
+```
+
+## 🏃‍♂️ Running the App
+
+### Development Mode
+```bash
+# Start Expo development server
+npx expo start
+
+# For specific platforms
+npx expo start --android
+npx expo start --ios
+npx expo start --web
+```
+
+### Building for Production
+
+#### Using EAS Build (Recommended)
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Login to Expo
+eas login
+
+# Configure EAS
+eas build:configure
+
+# Build for both platforms
+eas build --platform all
+
+# Build for specific platform
+eas build --platform ios
+eas build --platform android
+```
+
+#### Local Builds
+```bash
+# Android APK
+npx expo run:android --variant release
+
+# iOS (macOS only)
+npx expo run:ios --configuration Release
+```
+
+## 📁 Project Structure
+
+```
+HealthcareApp-RN/
+├── app/                          # Expo Router pages
+│   ├── (auth)/                   # Authentication screens
+│   ├── (patient-tabs)/           # Patient role screens
+│   ├── (doctor-tabs)/            # Doctor role screens
+│   ├── (driver-tabs)/            # Driver role screens
+│   └── _layout.tsx               # Root layout
+├── components/                   # Reusable components
+│   ├── patient/                  # Patient-specific components
+│   ├── doctor/                   # Doctor-specific components
+│   ├── driver/                   # Driver-specific components
+│   └── common/                   # Shared components
+├── contexts/                     # React Context providers
+│   ├── AuthContext.tsx           # Authentication state
+│   ├── AmbulanceContext.tsx      # Ambulance data
+│   └── ...
+├── services/                     # API and external services
+│   ├── supabase.ts               # Supabase client
+│   ├── ambulance.service.ts      # Ambulance operations
+│   ├── auth.service.ts           # Authentication
+│   └── ...
+├── constants/                    # App constants
+├── types/                        # TypeScript type definitions
+├── assets/                       # Images, fonts, etc.
+├── screenshots/                  # App screenshots
+├── .env                          # Environment variables
+├── app.config.js                 # Expo configuration
+└── package.json                  # Dependencies
+```
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Test User Accounts
+For testing purposes, you can create accounts with these roles:
+
+- **Patient**: Test emergency requests and doctor consultations
+- **Doctor**: Test appointment management and patient interactions  
+- **Driver**: Test ambulance request acceptance and tracking
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Metro Bundler Issues
+```bash
+# Clear Metro cache
+npx expo start --clear
+
+# Reset Metro cache completely
+npx expo start -c
+```
+
+#### Android Build Issues
+```bash
+# Clean Android build
+cd android && ./gradlew clean && cd ..
+
+# Rebuild
+npx expo run:android
+```
+
+#### iOS Build Issues
+```bash
+# Clean iOS build
+cd ios && xcodebuild clean && cd ..
+
+# Rebuild
+npx expo run:ios
+```
+
+#### Supabase Connection Issues
+1. Verify your `.env` file has correct URLs and keys
+2. Check if your Supabase project is active
+3. Ensure RLS policies are properly configured
+
+#### Google Maps Not Loading
+1. Verify API keys are correctly set
+2. Check if required APIs are enabled in Google Cloud Console
+3. Ensure billing is enabled for your Google Cloud project
+
+### Getting Help
+- Check the [Expo Documentation](https://docs.expo.dev/)
+- Visit [Supabase Documentation](https://supabase.com/docs)
+- Create an issue in this repository
+
+## 📄 API Documentation
+
+### Authentication Endpoints
+- `POST /auth/sign-up` - User registration
+- `POST /auth/sign-in` - User login  
+- `POST /auth/sign-out` - User logout
+
+### Ambulance Service Endpoints
+- `GET /ambulances/available` - Get available ambulances
+- `POST /ambulances/request` - Create emergency request
+- `PUT /ambulances/accept` - Accept request (driver)
+- `PUT /ambulances/status` - Update request status
+
+### User Management
+- `GET /profiles/me` - Get current user profile
+- `PUT /profiles/me` - Update user profile
+- `DELETE /profiles/me` - Delete user account
+
+*Full API documentation available in `/docs/api.md`*
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Sahil Paal**
+- GitHub: [@sahilforkshere](https://github.com/sahilforkshere)
+- LinkedIn: [Sahil Paal](https://linkedin.com/in/sahilpaal)
+- Email: paalsahil04@gmail.com
+
+## 🙏 Acknowledgments
+
+- **Expo Team** for the amazing development platform
+- **Supabase** for the backend infrastructure
+- **React Native Community** for the ecosystem
+- **Google Maps** for location services
+- **Healthcare Professionals** who provided domain expertise
+
+## 📈 Roadmap
+
+### Phase 1 (Current)
+- [x] User authentication and role management
+- [x] Basic ambulance dispatch functionality
+- [x] Real-time location tracking
+- [x] Doctor-patient consultation booking
+
+### Phase 2 (Planned)
+- [ ] Push notifications integration
+- [ ] Offline functionality enhancement
+- [ ] Payment gateway integration
+- [ ] Advanced analytics dashboard
+
+### Phase 3 (Future)
+- [ ] AI-powered ambulance routing
+- [ ] Telemedicine video calls
+- [ ] Integration with hospital systems
+- [ ] Multi-language support
+
+
+  Built with ❤️ for emergency healthcare services
+  
+  [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
