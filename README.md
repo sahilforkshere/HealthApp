@@ -497,4 +497,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
   Built with ❤️ for emergency healthcare services
   
+<<<<<<< HEAD
   [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
+=======
+  [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
+>>>>>>> 0a5a2bdb7ffb5ea8c4cf2ad7ae69c44519909b77
