@@ -12,7 +12,7 @@
 
 ### Video Demo
 
-[📺 Watch Demo Video (2 minutes)](https://youtu.be/your-demo-video-link)
+[📺 Watch Demo Video (2 minutes)](https://youtu.be/your-demo-video-link)  //TO BE UPLOADED
 
 ### Screenshots
 
@@ -130,10 +130,6 @@ Create a `.env` file in the root directory:
 # Supabase Configuration
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Google Maps API Keys
-GOOGLE_MAPS_API_KEY_ANDROID=your_android_maps_key
-GOOGLE_MAPS_API_KEY_IOS=your_ios_maps_key
 EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_expo_maps_key
 ```
 
@@ -461,7 +457,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Sahil Paal**
+**Sahil Pal**
 - GitHub: [@sahilforkshere](https://github.com/sahilforkshere)
 - LinkedIn: [Sahil Paal](https://linkedin.com/in/sahilpaal)
 - Email: paalsahil04@gmail.com
@@ -497,8 +493,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
   Built with ❤️ for emergency healthcare services
   
-<<<<<<< HEAD
   [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
-=======
-  [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
->>>>>>> 0a5a2bdb7ffb5ea8c4cf2ad7ae69c44519909b77
