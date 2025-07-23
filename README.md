@@ -109,8 +109,8 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/sahilforkshere/HealthcareApp-RN.git
-cd HealthcareApp-RN
+git clone https://github.com/sahilforkshere/HealthApp.git
+cd HealthcareApp
 ```
 
 ### 2. Install Dependencies
