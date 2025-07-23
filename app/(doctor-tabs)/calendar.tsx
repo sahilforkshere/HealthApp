@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../../contexts/AuthContext';
-// Fix the import - make sure the path is correct
+
 import { getDoctorCalendarEvents, CalendarEvent } from '../../services/calendar.service';
 import { getDoctorIdByUserId } from '../../services/doctor.service';
 
@@ -50,7 +50,7 @@ export default function DoctorCalendar() {
     
     console.log('📅 Loading events for doctor:', doctorId, 'on date:', selectedDate);
     
-    // Fix date range to include entire month instead of just one day
+  
     const currentDate = new Date(selectedDate);
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -65,7 +65,7 @@ export default function DoctorCalendar() {
     
     console.log('📊 All events loaded:', calendarEvents);
     
-    // Filter events for selected date for display
+    
     const selectedDateEvents = calendarEvents.filter(event => {
       const eventDate = event.start_datetime.split('T')[0];
       return eventDate === selectedDate;
@@ -73,7 +73,7 @@ export default function DoctorCalendar() {
     
     console.log('📅 Events for selected date:', selectedDate, selectedDateEvents);
     
-    // Mark all dates with events on calendar
+   
     const marked = {};
     calendarEvents.forEach(event => {
       const eventDate = event.start_datetime.split('T')[0];
@@ -84,7 +84,7 @@ export default function DoctorCalendar() {
       };
     });
     
-    // Highlight selected date
+   
     marked[selectedDate] = {
       ...marked[selectedDate],
       selected: true,
@@ -93,7 +93,7 @@ export default function DoctorCalendar() {
     
     setMarkedDates(marked);
     
-    // Set events for display (only selected date)
+   
     setEvents(selectedDateEvents);
     
     console.log('✅ Events loaded successfully. Total:', calendarEvents.length, 'Selected date:', selectedDateEvents.length);
