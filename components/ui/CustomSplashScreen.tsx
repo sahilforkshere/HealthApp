@@ -112,7 +112,7 @@ export default function CustomSplashScreen({ onFinish }: CustomSplashScreenProps
           ]}
         >
           <Text style={styles.developedBy}>Developed by</Text>
-          <Text style={styles.developerName}>Sahil Pal</Text>
+         
          
         </Animated.View>
 
