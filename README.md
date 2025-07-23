@@ -453,14 +453,11 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
 
-**Sahil Pal**
-- GitHub: [@sahilforkshere](https://github.com/sahilforkshere)
-- LinkedIn: [Sahil Paal](https://linkedin.com/in/sahilpaal)
-- Email: paalsahil04@gmail.com
+
+
+
 
 ## 🙏 Acknowledgments
 
@@ -478,19 +475,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Real-time location tracking
 - [x] Doctor-patient consultation booking
 
-### Phase 2 (Planned)
-- [ ] Push notifications integration
-- [ ] Offline functionality enhancement
-- [ ] Payment gateway integration
-- [ ] Advanced analytics dashboard
 
-### Phase 3 (Future)
-- [ ] AI-powered ambulance routing
-- [ ] Telemedicine video calls
-- [ ] Integration with hospital systems
-- [ ] Multi-language support
 
 
   Built with ❤️ for emergency healthcare services
   
-  [![GitHub stars](https://img.shields.io/github/stars/sahilforkshere/HealthcareApp-RN.svg?style=social&sahilforkshere/Healthcareimg.shields.io/github/forks/sahilforkshere/HealthcareApp-RN.svg?style=social&label=Fork
+
