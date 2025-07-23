@@ -68,7 +68,7 @@
 ### Backend & Database
 - **Backend-as-a-Service**: Supabase
 - **Database**: PostgreSQL (via Supabase)
-- **Authentication**: Supabase Auth with Row Level Security
+- **Authentication**: Supabase Auth with Row Level Security (RLS iis not enable now due to testing purposes)
 - **File Storage**: Supabase Storage
 - **Real-time**: Supabase Realtime subscriptions
 
